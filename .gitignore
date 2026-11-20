@@ -1,0 +1,13 @@
+# Secrets and local configuration
+.env
+
+# Dependencies (installed by Composer inside the container)
+/vendor/
+
+# Avoid assesment brief
+*.pdf
+
+# Tooling
+.phpunit.cache/
+.DS_Store
+.idea/
