@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports: # map host to Apache port
+      - "127.0.0.1:${APP_PORT:-8080}:80"
+    volumes: # mount working folder
+      - .:/var/www/html
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11.4.13
+    command:
+      - --character-set-server=utf8mb4
+      - --default-time-zone=+00:00
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:?Set DB_DATABASE in .env}
+      MARIADB_USER: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}
+      TEST_DATABASE: ${DB_TEST_DATABASE:?Set DB_TEST_DATABASE in .env}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mariadb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.3
+    profiles: [tools]
+    environment:
+      PMA_HOST: db
+    ports:
+      - "127.0.0.1:${PHPMYADMIN_PORT:-8081}:80"
+    depends_on:
+      - db
+
+volumes:
+  dbdata:
+

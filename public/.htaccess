@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Refuse any path segment starting with a dot: .env, .git/config, .htaccess
+RewriteRule (^|/)\. - [F]
+
+# Serve real files (CSS, JS, images) directly; send everything else to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
+
+# todo for pdf files and images only show them if request is from the app
