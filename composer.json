@@ -27,5 +27,9 @@
     "psr-4": {
       "Tests\\": "tests/"
     }
+  },
+  "scripts": {
+    "migrate": "php bin/migrate.php",
+    "test": "phpunit"
   }
 }
