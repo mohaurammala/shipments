@@ -11,4 +11,4 @@ CREATE TABLE quotes (
     KEY quotes_booking_latest (booking_id, id),
     CONSTRAINT quotes_booking_fk FOREIGN KEY (booking_id) REFERENCES bookings (id),
     CONSTRAINT quotes_outcome_check CHECK (outcome IN ('ok', 'no_rates', 'error'))
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci;

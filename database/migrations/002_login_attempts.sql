@@ -8,4 +8,4 @@ CREATE TABLE login_attempts (
     KEY login_attempts_email_ip_time (email, ip, attempted_at),
     KEY login_attempts_ip_time (ip, attempted_at),
     CONSTRAINT login_attempts_succeeded_check CHECK (succeeded IN (0, 1))
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci;

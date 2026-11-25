@@ -36,4 +36,4 @@ CREATE TABLE bookings (
     CONSTRAINT bookings_created_has_shipment_check CHECK (
         status <> 'CREATED' OR shiplogic_shipment_id IS NOT NULL
     )
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci;

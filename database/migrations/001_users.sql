@@ -11,4 +11,4 @@ CREATE TABLE users (
     UNIQUE KEY users_unique (email),
     CONSTRAINT users_role_check CHECK (role IN ('admin', 'operator')),
     CONSTRAINT users_is_active_check CHECK (is_active IN (0, 1))
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci;

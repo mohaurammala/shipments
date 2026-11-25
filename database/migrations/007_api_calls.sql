@@ -16,4 +16,4 @@ CREATE TABLE api_calls (
     CONSTRAINT api_calls_outcome_check CHECK (
         outcome IN ('ok', 'http_error', 'timeout', 'network', 'bad_response')
     )
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci;

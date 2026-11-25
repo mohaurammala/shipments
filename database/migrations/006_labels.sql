@@ -16,4 +16,4 @@ CREATE TABLE labels (
     CONSTRAINT labels_requested_by_fk FOREIGN KEY (requested_by) REFERENCES users (id),
     CONSTRAINT labels_status_check CHECK (status IN ('ok', 'failed')),
     CONSTRAINT labels_ok_has_url_check CHECK (status <> 'ok' OR pdf_url IS NOT NULL)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci;
