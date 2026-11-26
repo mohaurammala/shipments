@@ -10,9 +10,11 @@ declare(strict_types=1);
 
 use App\Controllers\AdminUserController;
 use App\Controllers\AuthController;
+use App\Controllers\BookingController;
 use App\Controllers\HealthController;
-use App\Controllers\HomeController;
+use App\Controllers\LabelController;
 use App\Controllers\PasswordResetController;
+use App\Controllers\ShipmentController;
 use App\Core\Config;
 use App\Core\Database;
 use App\Core\Logger;
@@ -30,14 +32,26 @@ use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Pages;
 use App\Http\Router;
+use App\Repositories\ApiCallRepository;
+use App\Repositories\BookingRepository;
+use App\Repositories\LabelRepository;
 use App\Repositories\LoginAttemptRepository;
+use App\Repositories\QuoteRepository;
 use App\Repositories\UserRepository;
 use App\Services\Authenticator;
+use App\Services\BookingDraftService;
+use App\Services\BookingService;
+use App\Services\LabelService;
 use App\Services\LoginService;
 use App\Services\LoginThrottle;
 use App\Services\PasswordResetService;
 use App\Services\Passwords;
+use App\Services\QuoteService;
 use App\Services\UserService;
+use App\Shiplogic\RatesRequestMapper;
+use App\Shiplogic\ShiplogicClient;
+use App\Shiplogic\ShipmentRequestMapper;
+use App\Validation\ShipmentValidator;
 use App\Validation\UserValidator;
 use Dotenv\Dotenv;
 
@@ -96,7 +110,50 @@ $verifyCsrf = new VerifyCsrfToken($csrf);
 
 $health = new HealthController($database, $logger);
 $auth = new AuthController($pages, $login, $authenticator, $csrf, $passwordResetEnabled);
-$home = new HomeController($pages);
+// Bookings and the Shiplogic integration.
+$isTestEnv = $config->get('APP_ENV', 'production') === 'sandbox';
+$bookingRepository = new BookingRepository($database);
+$labelRepository = new LabelRepository($database);
+$shiplogic = ShiplogicClient::fromConfig($config, new ApiCallRepository($database), $logger);
+$quotes = new QuoteService(
+    $bookingRepository,
+    new QuoteRepository($database),
+    $shiplogic,
+    new RatesRequestMapper(),
+    $clock,
+    $logger,
+    ttlMinutes: $config->int('QUOTE_TTL_MINUTES', 30),
+);
+$bookingService = new BookingService(
+    $bookingRepository,
+    $quotes,
+    $shiplogic,
+    new ShipmentRequestMapper($isTestEnv),
+    $clock,
+    $logger,
+    // The longest a booking request can take, plus a margin: after that, a booking still
+    // in CREATING was abandoned by a request that died.
+    stuckAfterSeconds: $config->int('SHIPLOGIC_CONNECT_TIMEOUT', 5) + $config->int('SHIPLOGIC_TIMEOUT', 20) + 30,
+);
+$bookings = new BookingController(
+    $pages,
+    $bookingRepository,
+    new BookingDraftService($bookingRepository, $clock, $logger),
+    $quotes,
+    $bookingService,
+    $labelRepository,
+    new ShipmentValidator(),
+    $authenticator,
+    $flash,
+    isTestEnvironment: $isTestEnv,
+);
+$shipments = new ShipmentController($bookingRepository, $bookingService, $authenticator, $flash);
+$labels = new LabelController(
+    $bookingRepository,
+    new LabelService($labelRepository, $shiplogic, $logger),
+    $authenticator,
+    $flash,
+);
 $adminUsers = new AdminUserController(
     $pages,
     new UserService($database, $users, $passwords, $logger),
@@ -122,7 +179,9 @@ $registerRoutes(
     verifyCsrf: $verifyCsrf,
     health: $health,
     auth: $auth,
-    home: $home,
+    bookings: $bookings,
+    shipments: $shipments,
+    labels: $labels,
     adminUsers: $adminUsers,
     resets: $resets,
 );

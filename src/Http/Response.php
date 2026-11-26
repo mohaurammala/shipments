@@ -48,6 +48,29 @@ final readonly class Response
         return new self('', $status, ['Location' => $path]);
     }
 
+    /**
+     * A redirect off this site, allowed only to https URLs on the given hosts or their
+     * subdomains (e.g. ".shiplogic.com" for label PDFs). Even if an API answer were tampered
+     * with, users could not be sent anywhere else. No referrer, no caching.
+     *
+     * @param list<string> $hostSuffixes Like ".shiplogic.com".
+     */
+    public static function redirectToTrustedHost(string $url, array $hostSuffixes): self
+    {
+        $parts = parse_url($url);
+        $host = is_array($parts) ? strtolower($parts['host'] ?? '') : '';
+        $trusted = array_filter(
+            $hostSuffixes,
+            static fn (string $suffix): bool => $host === ltrim($suffix, '.') || str_ends_with($host, $suffix),
+        );
+
+        if (!is_array($parts) || ($parts['scheme'] ?? '') !== 'https' || $trusted === [] || preg_match('/[\x00-\x20\x7F]/', $url) === 1) {
+            throw new InvalidArgumentException('That redirect target is not trusted.');
+        }
+
+        return new self('', 303, ['Location' => $url, 'Cache-Control' => 'no-store', 'Referrer-Policy' => 'no-referrer']);
+    }
+
     public function withHeader(string $name, string $value): static
     {
         if (preg_match('/[\r\n\0]/', $name . $value) === 1) {

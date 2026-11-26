@@ -54,6 +54,21 @@ final class SchemaTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aCancelledBookingKeepsItsShipmentId(): void
+    {
+        $userId = $this->createUser();
+        $rateId = $this->createRate($this->createBooking($userId));
+
+        $this->assertRefusedBy(
+            'bookings_created_has_shipment_check',
+            fn () => $this->createBooking($userId, ['status' => 'CANCELLED', 'selected_rate_id' => $rateId]),
+        );
+
+        $this->createBooking($userId, ['status' => 'CANCELLED', 'selected_rate_id' => $rateId, 'shiplogic_shipment_id' => 'SL-1002']);
+        $this->addToAssertionCount(1);
+    }
+
+    #[Test]
     public function oneShipmentCanNeverBelongToTwoBookings(): void
     {
         $userId = $this->createUser();

@@ -1,6 +1,6 @@
 -- The services offered in one quote. Money is DECIMAL, never FLOAT: 0.1 + 0.2 must be 0.3.
--- vat_treatment has no CHECK yet: its possible values depend on the rates response, which
--- is confirmed against the API documentation in A7.
+-- vat_treatment has no CHECK: the API documentation does not list its possible
+-- values (only 'standard' has been seen).
 CREATE TABLE quote_rates (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     quote_id BIGINT UNSIGNED NOT NULL,

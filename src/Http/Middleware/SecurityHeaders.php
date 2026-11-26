@@ -15,11 +15,13 @@ final readonly class SecurityHeaders implements Middleware
 {
     /**
      * Only this site may supply scripts, styles, images, forms and frames. Bootstrap is
-     * served from /assets, so no third-party origin is needed. form-action also applies to
-     * where a form's redirect leads in some browsers;
+     * served from /assets, so no third-party origin is needed. Images may also be data:
+     * URLs, because Bootstrap's CSS draws its icons (select arrows, validation marks, the
+     * menu button) that way; an image cannot run code. form-action also applies to where a
+     * form's redirect leads in some browsers, which is why the label opens with a GET link.
      */
-    private const string CONTENT_SECURITY_POLICY = "default-src 'self'; base-uri 'self'; form-action 'self'; "
-        . "frame-ancestors 'none'; object-src 'none'";
+    private const string CONTENT_SECURITY_POLICY = "default-src 'self'; img-src 'self' data:; base-uri 'self'; "
+        . "form-action 'self'; frame-ancestors 'none'; object-src 'none'";
 
     public function __construct(private bool $https)
     {

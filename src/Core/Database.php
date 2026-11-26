@@ -87,6 +87,9 @@ final class Database
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
             Mysql::ATTR_INIT_COMMAND => "SET time_zone = '+00:00'",
+            // rowCount() after an UPDATE reports rows *matched*, not rows *changed*, so
+            // "saved with no differences" and "not found" can be told apart.
+            Mysql::ATTR_FOUND_ROWS => true,
         ]);
     }
 }

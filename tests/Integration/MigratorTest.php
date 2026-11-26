@@ -38,10 +38,15 @@ final class MigratorTest extends TestCase
         $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
         sort($tables);
 
-        self::assertSame([
-            '001_users', '002_login_attempts', '003_bookings', '004_quotes',
-            '005_quote_rates', '006_labels', '007_api_calls',
-        ], $versions);
+        // Every file in database/migrations, in order, and nothing else.
+        $files = array_map(
+            static fn (string $path): string => basename($path, '.sql'),
+            glob(dirname(__DIR__, 2) . '/database/migrations/*.sql') ?: [],
+        );
+        sort($files);
+
+        self::assertSame($files, $versions);
+        self::assertSame(['001_users', '002_login_attempts', '003_bookings'], array_slice($versions, 0, 3));
         self::assertSame(self::TABLES, $tables);
     }
 }

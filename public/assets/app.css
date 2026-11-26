@@ -1,0 +1,17 @@
+/* Small additions to Bootstrap. No inline styles anywhere: the content security policy
+   only allows stylesheets from this site. */
+
+.stepper .badge {
+  padding: 0.5rem 0.85rem;
+}
+
+/* Bootstrap only shows .invalid-feedback after an .is-invalid sibling; show it for fields
+   inside wrappers too, so every server-side message is visible. */
+.invalid-feedback {
+  display: block;
+}
+
+legend.h5 {
+  float: none;
+  margin-bottom: 1rem;
+}

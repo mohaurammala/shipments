@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 final class BookingStatusTest extends TestCase
 {
     /**
-     * The state machine from DESIGN.md §3, written out independently of the enum, so a
+     * The booking state machine, written out independently of the enum, so a
      * mistake in either one makes the tests fail.
      */
     private const array ALLOWED = [
@@ -22,11 +22,12 @@ final class BookingStatusTest extends TestCase
         'CREATING' => ['CREATED', 'FAILED', 'OUTCOME_UNKNOWN'],
         'FAILED' => ['DRAFT', 'QUOTED', 'CREATING'],
         'OUTCOME_UNKNOWN' => ['CREATED', 'FAILED'],
-        'CREATED' => [],
+        'CREATED' => ['CANCELLED'],
+        'CANCELLED' => [],
     ];
 
     /**
-     * Every pair of statuses: 7 × 7 = 49 cases.
+     * Every pair of statuses: 8 × 8 = 64 cases.
      *
      * @return iterable<string, array{BookingStatus, BookingStatus, bool}>
      */
@@ -49,10 +50,12 @@ final class BookingStatusTest extends TestCase
     }
 
     #[Test]
-    public function aCreatedBookingIsFinalAndCannotBeEdited(): void
+    public function aCreatedBookingCanOnlyBeCancelledAndCancellingIsFinal(): void
     {
-        self::assertTrue(BookingStatus::Created->isFinal());
+        self::assertFalse(BookingStatus::Created->isFinal());
         self::assertFalse(BookingStatus::Created->isEditable());
+        self::assertTrue(BookingStatus::Cancelled->isFinal());
+        self::assertFalse(BookingStatus::Cancelled->isEditable());
     }
 
     #[Test]
@@ -73,9 +76,19 @@ final class BookingStatusTest extends TestCase
     #[Test]
     public function theEnumAndTheDatabaseAgreeOnTheStatuses(): void
     {
-        $migration = (string) file_get_contents(dirname(__DIR__, 3) . '/database/migrations/003_bookings.sql');
-        self::assertSame(1, preg_match('/bookings_status_check\s+CHECK\s*\(\s*status IN \(([^)]*)\)/', $migration, $check));
-        preg_match_all("/'([A-Z_]+)'/", $check[1], $values);
+        // The constraint as the last migration that (re)defines it leaves it.
+        $migrations = glob(dirname(__DIR__, 3) . '/database/migrations/*.sql') ?: [];
+        sort($migrations);
+        $check = null;
+
+        foreach ($migrations as $file) {
+            if (preg_match('/bookings_status_check\s+CHECK\s*\(\s*status IN \(([^)]*)\)/', (string) file_get_contents($file), $match) === 1) {
+                $check = $match[1];
+            }
+        }
+
+        self::assertNotNull($check, 'no migration defines bookings_status_check');
+        preg_match_all("/'([A-Z_]+)'/", $check, $values);
 
         $inDatabase = $values[1];
         $inEnum = array_map(static fn (BookingStatus $status): string => $status->value, BookingStatus::cases());
