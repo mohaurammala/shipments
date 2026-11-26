@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Auth;
 
 use App\Core\Database;
-use App\Domain\Role;
+use App\Domain\Enums\Role;
 use App\Http\HttpException;
 use App\Http\Middleware\RequireLogin;
 use App\Http\Middleware\RequireRole;

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain;
 
+use App\Domain\Enums\Role;
+
 /**
  * A person who can sign in. Deliberately has no password hash: the hash is only ever read
  * by the login check, so it cannot end up in a view, a log or a session by accident.

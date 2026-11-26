@@ -8,8 +8,8 @@ use App\Core\View;
 use App\Services\Authenticator;
 
 /**
- * Renders full pages with what every page needs: the signed-in user (for the header) and
- * the CSRF token (for every form, including the sign-out button).
+ * Renders full pages with what every page needs: the signed-in user (for the header), the
+ * CSRF token (for every form, including the sign-out button) and any flash messages.
  */
 final readonly class Pages
 {
@@ -17,6 +17,7 @@ final readonly class Pages
         private View $view,
         private Authenticator $authenticator,
         private CsrfToken $csrf,
+        private Flash $flash,
     ) {
     }
 
@@ -28,6 +29,7 @@ final readonly class Pages
         $html = $this->view->render($template, [
             'currentUser' => $this->authenticator->user(),
             'csrfToken' => $this->csrf->value(),
+            'flash' => $this->flash->pull(),
             ...$data,
         ]);
 

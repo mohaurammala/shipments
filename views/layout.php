@@ -7,6 +7,7 @@
  * @var string|null $title
  * @var App\Domain\User|null $currentUser Not set on error pages.
  * @var string|null $csrfToken Not set on error pages.
+ * @var list<array{type: string, message: string}>|null $flash Not set on error pages.
  */
 ?>
 <!doctype html>
@@ -20,6 +21,9 @@
 <header>
     <a href="/">Shipments</a>
     <?php if (isset($currentUser, $csrfToken)): ?>
+        <?php if ($currentUser->isAdmin()): ?>
+            <a href="/admin/users">Users</a>
+        <?php endif ?>
         <span>Signed in as <?= escape($currentUser->email) ?> (<?= escape($currentUser->role->value) ?>)</span>
         <form method="post" action="/logout">
             <input type="hidden" name="_token" value="<?= escape($csrfToken) ?>">
@@ -28,6 +32,9 @@
     <?php endif ?>
 </header>
 <main>
+<?php foreach ($flash ?? [] as $message): ?>
+    <p role="<?= $message['type'] === 'error' ? 'alert' : 'status' ?>"><?= escape($message['message']) ?></p>
+<?php endforeach ?>
 <?= $content ?>
 </main>
 </body>

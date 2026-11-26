@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 use App\Core\Config;
 use App\Core\Database;
-use App\Domain\Role;
+use App\Domain\Enums\Role;
 use App\Repositories\UserRepository;
 use App\Services\LoginService;
 use App\Services\Passwords;

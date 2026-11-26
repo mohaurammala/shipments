@@ -86,6 +86,15 @@ final class Authenticator
         $this->resolved = true;
     }
 
+    /**
+     * A new session id for the signed-in user, e.g. after their own role changed, so an id
+     * captured at the old privilege level stops working.
+     */
+    public function reissueSession(): void
+    {
+        $this->session->regenerate();
+    }
+
     public function logout(): void
     {
         $this->session->destroy();

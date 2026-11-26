@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
-use App\Domain\Role;
+use App\Domain\Enums\Role;
 use App\Domain\User;
+use App\Domain\UserSummary;
 use DateTimeImmutable;
+use DateTimeZone;
+use PDO;
 
 final readonly class UserRepository
 {
@@ -75,6 +78,46 @@ final readonly class UserRepository
     {
         $this->database->pdo()->prepare('UPDATE users SET is_active = ? WHERE id = ?')
             ->execute([$active ? 1 : 0, $userId]);
+    }
+
+    public function setRole(int $userId, Role $role): void
+    {
+        $this->database->pdo()->prepare('UPDATE users SET role = ? WHERE id = ?')
+            ->execute([$role->value, $userId]);
+    }
+
+    /**
+     * @return list<UserSummary> Every account, by email.
+     */
+    public function summaries(): array
+    {
+        $rows = $this->database->pdo()
+            ->query('SELECT ' . self::COLUMNS . ', created_at, last_login_at FROM users ORDER BY email')
+            ->fetchAll();
+        $utc = new DateTimeZone('UTC');
+
+        return array_map(fn (array $row): UserSummary => new UserSummary(
+            $this->toUser($row),
+            new DateTimeImmutable((string) $row['created_at'], $utc),
+            $row['last_login_at'] === null ? null : new DateTimeImmutable((string) $row['last_login_at'], $utc),
+        ), $rows);
+    }
+
+    /**
+     * The active admins' ids, with their rows locked until the surrounding transaction ends.
+     * A second request checking "is another admin left?" waits here instead of reading the
+     * same answer, so two admins cannot demote each other at the same moment and leave none.
+     *
+     * @return list<int>
+     */
+    public function lockActiveAdminIds(): array
+    {
+        $statement = $this->database->pdo()->prepare(
+            'SELECT id FROM users WHERE role = ? AND is_active = 1 FOR UPDATE',
+        );
+        $statement->execute([Role::Admin->value]);
+
+        return array_map(intval(...), $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 
     /**

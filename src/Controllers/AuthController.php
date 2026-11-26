@@ -20,6 +20,7 @@ final readonly class AuthController
         private LoginService $login,
         private Authenticator $authenticator,
         private CsrfToken $csrf,
+        private bool $passwordResetEnabled = false,
     ) {
     }
 
@@ -29,7 +30,13 @@ final readonly class AuthController
             return Response::redirect('/');
         }
 
-        return $this->form();
+        // Set by the password reset page's redirect. Only a fixed value is recognised, so the
+        // query string cannot inject text into the page.
+        $notice = $request->query('reset') === 'done'
+            ? 'Your password has been changed. Sign in with the new one.'
+            : null;
+
+        return $this->form(notice: $notice);
     }
 
     public function login(Request $request): Response
@@ -66,8 +73,14 @@ final readonly class AuthController
      * The email is kept so a typo in the password does not mean retyping it; the password
      * is never sent back.
      */
-    private function form(string $email = '', ?string $error = null, int $status = 200): Response
+    private function form(string $email = '', ?string $error = null, int $status = 200, ?string $notice = null): Response
     {
-        return $this->pages->render('auth/login', ['title' => 'Sign in', 'email' => $email, 'error' => $error], $status);
+        return $this->pages->render('auth/login', [
+            'title' => 'Sign in',
+            'email' => $email,
+            'error' => $error,
+            'notice' => $notice,
+            'passwordResetEnabled' => $this->passwordResetEnabled,
+        ], $status);
     }
 }

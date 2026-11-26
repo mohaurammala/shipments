@@ -6,7 +6,7 @@ namespace Tests\Integration\Auth;
 
 use App\Core\Database;
 use App\Core\Logger;
-use App\Domain\Role;
+use App\Domain\Enums\Role;
 use App\Domain\User;
 use App\Repositories\LoginAttemptRepository;
 use App\Repositories\UserRepository;

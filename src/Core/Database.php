@@ -41,6 +41,37 @@ final class Database
     {
         return $this->pdo ??= $this->connect();
     }
+
+    /**
+     * Runs $work in a transaction: committed if it returns, rolled back if it throws.
+     * Called while a transaction is already open (as in integration tests), it joins that
+     * one instead of starting another, which MariaDB does not allow.
+     *
+     * @template T
+     * @param callable(): T $work
+     * @return T
+     */
+    public function transaction(callable $work): mixed
+    {
+        $pdo = $this->pdo();
+
+        if ($pdo->inTransaction()) {
+            return $work();
+        }
+
+        $pdo->beginTransaction();
+
+        try {
+            $result = $work();
+            $pdo->commit();
+
+            return $result;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+
+            throw $e;
+        }
+    }
     
     private function connect(): PDO
     {

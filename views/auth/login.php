@@ -3,9 +3,14 @@
  * @var string $csrfToken
  * @var string $email
  * @var string|null $error
+ * @var string|null $notice
+ * @var bool $passwordResetEnabled
  */
 ?>
 <h1>Sign in</h1>
+<?php if ($notice !== null): ?>
+    <p role="status"><?= escape($notice) ?></p>
+<?php endif ?>
 <?php if ($error !== null): ?>
     <p role="alert"><?= escape($error) ?></p>
 <?php endif ?>
@@ -21,3 +26,6 @@
     </p>
     <button type="submit">Sign in</button>
 </form>
+<?php if ($passwordResetEnabled): ?>
+    <p><a href="/reset-password">Forgotten your password?</a></p>
+<?php endif ?>
