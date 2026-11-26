@@ -5,6 +5,8 @@
  * @var string $content The rendered template. Already escaped, so it is the one value
  *                      printed without e().
  * @var string|null $title
+ * @var App\Domain\User|null $currentUser Not set on error pages.
+ * @var string|null $csrfToken Not set on error pages.
  */
 ?>
 <!doctype html>
@@ -12,9 +14,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e(isset($title) ? "{$title} · Shipments" : 'Shipments') ?></title>
+    <title><?= escape(isset($title) ? "{$title} · Shipments" : 'Shipments') ?></title>
 </head>
 <body>
+<header>
+    <a href="/">Shipments</a>
+    <?php if (isset($currentUser, $csrfToken)): ?>
+        <span>Signed in as <?= escape($currentUser->email) ?> (<?= escape($currentUser->role->value) ?>)</span>
+        <form method="post" action="/logout">
+            <input type="hidden" name="_token" value="<?= escape($csrfToken) ?>">
+            <button type="submit">Sign out</button>
+        </form>
+    <?php endif ?>
+</header>
 <main>
 <?= $content ?>
 </main>

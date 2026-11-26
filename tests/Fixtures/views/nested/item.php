@@ -1,4 +1,4 @@
 <?php
 /** @var string $label */
 ?>
-item:<?= e($label) ?>
+item:<?= escape($label) ?>

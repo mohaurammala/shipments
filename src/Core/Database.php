@@ -25,6 +25,18 @@ final class Database
     {
     }
     
+    /**
+     * Wraps a connection that is already open. Integration tests use this so repositories
+     * run on the test connection, inside the transaction each test rolls back.
+     */
+    public static function fromConnection(PDO $pdo): self
+    {
+        $database = new self(new Config([]));
+        $database->pdo = $pdo;
+
+        return $database;
+    }
+
     public function pdo(): PDO
     {
         return $this->pdo ??= $this->connect();

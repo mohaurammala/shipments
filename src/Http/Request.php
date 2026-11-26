@@ -72,6 +72,15 @@ final readonly class Request
     }
 
     /**
+     * A password or other secret: checked like input() but never trimmed, because a space
+     * at either end is part of the secret the user chose.
+     */
+    public function secret(string $key): ?string
+    {
+        return $this->single($this->body, $key, trim: false);
+    }
+
+    /**
      * A nested form value such as parcels[0][weight_kg], with every leaf normalised.
      *
      * @return array<array-key, mixed>
@@ -107,7 +116,7 @@ final readonly class Request
     /**
      * @param array<array-key, mixed> $source
      */
-    private function single(array $source, string $key): ?string
+    private function single(array $source, string $key, bool $trim = true): ?string
     {
         if (!array_key_exists($key, $source)) {
             return null;
@@ -120,10 +129,10 @@ final readonly class Request
             throw HttpException::badRequest();
         }
 
-        return $this->normalise($value);
+        return $this->normalise($value, $trim);
     }
 
-    private function normalise(string $value): string
+    private function normalise(string $value, bool $trim = true): string
     {
         if (
             strlen($value) > self::MAX_FIELD_BYTES
@@ -133,7 +142,7 @@ final readonly class Request
             throw HttpException::badRequest();
         }
 
-        return trim($value);
+        return $trim ? trim($value) : $value;
     }
 
     /**

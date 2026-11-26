@@ -4,4 +4,4 @@
  * @var string|null $title
  */
 ?>
-[layout:<?= e($title ?? 'none') ?>]<?= $content ?>[/layout]
+[layout:<?= escape($title ?? 'none') ?>]<?= $content ?>[/layout]

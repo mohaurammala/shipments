@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Core\Interfaces\Clock;
 use DateTimeImmutable;
 use DateTimeZone;
 
